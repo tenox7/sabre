@@ -8,3 +8,5 @@ Originally from [http://sabre.cobite.com/](https://web.archive.org/web/200003030
 
 Forked from https://github.com/ysangkok/sabre.
 
+
+Also available version for Windows NT RISC Alpha, MIPS, PowerPC - here: https://github.com/tenox7/sabreNT
