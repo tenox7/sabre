@@ -61,15 +61,23 @@ static void sendKey(int vkey)
     g_pendingKey = vkey;
 }
 
+extern void sound_set_master_volume(int);
+extern int sound_get_master_volume(void);
+
 @interface MenuDelegate : NSObject
 - (void)missionAction:(id)sender;
 - (void)demoAction:(id)sender;
 - (void)customMission:(id)sender;
 - (void)viewAction:(id)sender;
 - (void)toggleSound:(id)sender;
+- (void)volumeUp:(id)sender;
+- (void)volumeDown:(id)sender;
 - (void)showHelp:(id)sender;
 - (void)quitAction:(id)sender;
+- (void)updateVolumeTitle;
 @end
+
+static NSMenuItem *g_volumeItem = nil;
 
 @implementation MenuDelegate
 
@@ -117,6 +125,29 @@ static void sendKey(int vkey)
 - (void)toggleSound:(id)sender {
     g_soundEnabled = !g_soundEnabled;
     [(NSMenuItem *)sender setTitle:g_soundEnabled ? @"Sound: ON" : @"Sound: OFF"];
+    sound_set_master_volume(g_soundEnabled ? 50 : 0);
+    [self updateVolumeTitle];
+}
+
+- (void)volumeUp:(id)sender {
+    (void)sender;
+    int vol = sound_get_master_volume();
+    sound_set_master_volume(vol + 10);
+    g_soundEnabled = sound_get_master_volume() > 0;
+    [self updateVolumeTitle];
+}
+
+- (void)volumeDown:(id)sender {
+    (void)sender;
+    int vol = sound_get_master_volume();
+    sound_set_master_volume(vol - 10);
+    g_soundEnabled = sound_get_master_volume() > 0;
+    [self updateVolumeTitle];
+}
+
+- (void)updateVolumeTitle {
+    if (g_volumeItem)
+        [g_volumeItem setTitle:[NSString stringWithFormat:@"Volume: %d%%", sound_get_master_volume()]];
 }
 
 - (void)showHelp:(id)sender {
@@ -310,6 +341,12 @@ void setupMenu()
         NSMenuItem *mi = [[NSMenuItem alloc] init];
         NSMenu *m = [[NSMenu alloc] initWithTitle:@"Settings"];
         addItem(m, @"Sound: ON", @selector(toggleSound:), @"", 0, g_delegate);
+        [m addItem:[NSMenuItem separatorItem]];
+        addItem(m, @"Volume Up", @selector(volumeUp:), @"+", 0, g_delegate);
+        addItem(m, @"Volume Down", @selector(volumeDown:), @"-", 0, g_delegate);
+        g_volumeItem = [[NSMenuItem alloc] initWithTitle:@"Volume: 50%" action:nil keyEquivalent:@""];
+        [g_volumeItem setEnabled:NO];
+        [m addItem:g_volumeItem];
         [mi setSubmenu:m];
         [menuBar addItem:mi];
     }

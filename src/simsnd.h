@@ -79,6 +79,8 @@ extern int sound_get_active(void);
 extern void sound_toggle_active(void);
 
 extern int sound_calc_distant_vol(const R_3DPoint &soundPoint, REAL_TYPE maxDistSq);
+extern void sound_set_master_volume(int percent);
+extern int sound_get_master_volume(void);
 // error enums
 enum {
 			SOUND_OK,

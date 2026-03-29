@@ -81,6 +81,7 @@ static R_3DPoint soundViewPoint;
 static int soundLock = 0;
 static int soundActive = 1;
 static int soundAffiliation = 0;
+static int masterVolume = 50;
 
 int sound_avail = 0;
 
@@ -99,6 +100,7 @@ int sound_init(__attribute__((unused)) long param)
   }
   Mix_AllocateChannels(MIX_CHANNELS);
   Mix_ChannelFinished(channel_finished);
+  Mix_Volume(-1, (masterVolume * MIX_MAX_VOLUME) / 100);
   sound_count = 0;
   for (int i = 0; i < MAX_SOUND_IDS; i++) {
     sounds[i].id[0] = 0;
@@ -416,4 +418,20 @@ const char *soundErr2String(int err)
   case WAV_NO_DATA_CHUNK:  return "WAV_NO_DATA_CHUNK";
   }
   return "unknown";
+}
+
+void sound_set_master_volume(int percent)
+{
+  if (percent < 0) percent = 0;
+  if (percent > 100) percent = 100;
+  masterVolume = percent;
+#ifdef HAVE_LIBSDL
+  if (sound_avail)
+    Mix_Volume(-1, (masterVolume * MIX_MAX_VOLUME) / 100);
+#endif
+}
+
+int sound_get_master_volume(void)
+{
+  return masterVolume;
 }
