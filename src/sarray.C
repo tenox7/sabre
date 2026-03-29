@@ -137,3 +137,9 @@ sObject *sObjectArray::operator [](int idx) const
     return (NULL);
 }
 
+void sObjectArray::SetNull(int idx)
+{
+  if (idx >= 0 && idx < n)
+    objs[idx] = NULL;
+}
+

@@ -25,7 +25,8 @@
 #include <fstream>
 #include <math.h>
 #include <limits.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include "sim.h"
 #include "simfile.h"
 #include "defs.h"

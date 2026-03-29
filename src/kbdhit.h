@@ -22,9 +22,8 @@
 
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/termios.h>
+#include <termios.h>
 #include <unistd.h>
-#include "../gdev/gdev.h"
 
 class KBHit
 {

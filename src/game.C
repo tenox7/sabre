@@ -25,7 +25,8 @@
  *************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include <float.h>
 #include <time.h>
 #include <string.h>

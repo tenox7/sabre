@@ -25,7 +25,7 @@
  *************************************************/
 #include <stdio.h>
 #include <assert.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "dhlist.h"
 
 Dhlist *new_dhlist(Dhlist *list)

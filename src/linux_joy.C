@@ -29,7 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 // Define this in the Makefile if joystick drivers
 // installed
 #ifdef JSTICK_INSTALLED
@@ -333,7 +334,7 @@ void LinuxJoystick::calibrate()
   printf ("--------------------------\n\n");
   printf ("1. Getting correction values \n");
   printf ("Current correction: %d , %d\n", js_data.x, js_data.y);
-  max_x = max_y = -MAXINT;
+  max_x = max_y = -INT_MAX;
   printf("Move joystick back and forth several times,\npress any button to continue\n");
   while (1)
     {
@@ -366,8 +367,8 @@ void LinuxJoystick::calibrate()
 
   printf ("2. Getting maximum & minimum values \n");
 
-  min_x = min_y = MAXINT;
-  max_x = max_y = -MAXINT;
+  min_x = min_y = INT_MAX;
+  max_x = max_y = -INT_MAX;
   printf("Move joystick back and forth several times,\npress any button to continue\n");
   while(read(fd,&js_data,JS_RETURN) && js_data.buttons);
 

@@ -29,7 +29,8 @@
 #include <fstream>
 #include <math.h>
 #include <limits.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include "defs.h"
 #include "simerr.h"
 #include "sim.h"

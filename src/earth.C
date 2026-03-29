@@ -30,7 +30,8 @@
 #include <fstream>
 #include <math.h>
 #include <limits.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 //#define fmin(a,b) (a) < (b) ? (a) : (b)
 //#define fmax(a,b) (a) > (b) ? (a) : (b)
 #include "vmath.h"

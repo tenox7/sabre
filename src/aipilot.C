@@ -31,8 +31,11 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <set>
 #include "aipilot.h"
 #include "aipildef.h"
+
+static std::set<void*> livePilots;
 
 extern "C" void sim_printf(char *, ...);
 
@@ -55,11 +58,22 @@ aiPilot::aiPilot(sFlightModel *flightMdl)
 	SetCapsId("DEFAULT");
 	hasGunners = 0;
 	flightModelUpdateFlag = 1;
+	livePilots.insert(this);
 }
 
 aiPilot::~aiPilot()
 {
+	livePilots.erase(this);
+	for (int i = 0; i < aiPilots.Count(); i++)
+		if (aiPilots[i] == this)
+			aiPilots.SetNull(i);
+	if (cashedPilot == this)
+		cashedPilot = NULL;
+}
 
+bool aiPilot::IsLivePilot(void *p)
+{
+	return livePilots.count(p) > 0;
 }
 
 /*
@@ -2524,34 +2538,29 @@ void aiPilot::AddaiPilot(aiPilot *pilot)
 */
 aiPilot *aiPilot::GetaiPilot(uint32_t idx)
 {
-	aiPilot *result = NULL;
-	if (cashedPilot != NULL &&	cashedPilot->GetIdx() == idx)
-		result = cashedPilot;
-	else
+	if (cashedPilot != NULL && IsLivePilot(cashedPilot) && cashedPilot->GetIdx() == idx)
+		return cashedPilot;
+	cashedPilot = NULL;
+	int i = static_cast<int>(idx);
+	if (i < GetPilotCount())
 	{
-		int i = static_cast<int>(idx); //safe cast from uint_32t
-		if (i < GetPilotCount())
+		aiPilot *pil = static_cast<aiPilot *>(aiPilots[i]);
+		if (pil != NULL && IsLivePilot(pil) && pil->GetIdx() == idx)
 		{
-			aiPilot *pil = static_cast<aiPilot *>(aiPilots[i]);
-			if (pil != NULL && pil->GetIdx() == idx)
-				result = pil;
+			cashedPilot = pil;
+			return pil;
 		}
 	}
-	if (result == NULL)
+	for (int j = 0; j < GetPilotCount(); j++)
 	{
-		for (int i=0;i<GetPilotCount();i++)
+		aiPilot *pil = static_cast<aiPilot *>(aiPilots[j]);
+		if (pil != NULL && IsLivePilot(pil) && pil->GetIdx() == idx)
 		{
-			aiPilot *pil = static_cast<aiPilot *>(aiPilots[i]);
-			if (pil != NULL && pil->GetIdx() == idx)
-			{
-				result = pil;
-				break;
-			}
+			cashedPilot = pil;
+			return pil;
 		}
 	}
-	if (result != NULL)
-		cashedPilot = result;
-	return result;
+	return NULL;
 }
 
 /*
@@ -2560,17 +2569,13 @@ aiPilot *aiPilot::GetaiPilot(uint32_t idx)
  */
 aiPilot *aiPilot::GetaiPilot(const char *handle)
 {
-	aiPilot *result =NULL;
-	for (int i=0;i<GetPilotCount();i++)
+	for (int i = 0; i < GetPilotCount(); i++)
 	{
 		aiPilot *pil = GetPilotByIndex(i);
-		if (pil && !strcmp(handle,pil->GetHandle()))
-		{
-			result = pil;
-			break;
-		}
+		if (pil && IsLivePilot(pil) && !strcmp(handle, pil->GetHandle()))
+			return pil;
 	}
-	return (result);
+	return NULL;
 }
 
 int aiPilot::GetPilotCount()
@@ -2584,6 +2589,7 @@ void aiPilot::FlushaiPilots()
   playerPilot = NULL;
   cashedPilot = NULL;
   nextIdx = 0L;
+  livePilots.clear();
 }
 
 void aiPilot::RemoveaiPilot(aiPilot *pil)
@@ -2601,9 +2607,12 @@ void aiPilot::RemoveaiPilot(aiPilot *pil)
 aiPilot *aiPilot::GetPilotByIndex(int i)
 {
 	if (i < aiPilots.Count())
-		return static_cast<aiPilot *>(aiPilots[i]);
-	else
-		return NULL;
+	{
+		aiPilot *pil = static_cast<aiPilot *>(aiPilots[i]);
+		if (pil && IsLivePilot(pil))
+			return pil;
+	}
+	return NULL;
 }
 
 void aiPilot::BodyVector2WorldVector(int idx, const sVector &body, sVector &world)

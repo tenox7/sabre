@@ -25,7 +25,8 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include "defs.h"
 #include "simerr.h"
 #include "grafix.h"
@@ -40,8 +41,8 @@ static void BuildEdgeArray(int *l_points, int l_npoints);
 
 
 
-#define LOW_VALUE -MAXINT
-#define HIGH_VALUE MAXINT
+#define LOW_VALUE -INT_MAX
+#define HIGH_VALUE INT_MAX
 
 //#define CHECK_BAD_POLY(x,y) if ( ( (y) > 300 ) || ( (y) < -300 ) || ( (x) > 400 ) || ( (x) < -400 ) ) { bad_poly = 1; return; }
 // #define CHECK_POLY

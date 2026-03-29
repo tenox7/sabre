@@ -44,7 +44,8 @@
 #include <math.h>
 #include <string.h>
 #include <limits.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include "defs.h"
 #include "grafix.h"
 #include "vga_13.h"

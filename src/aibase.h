@@ -44,8 +44,13 @@
 class aiBase : public sObject
 {
 public:
+	static const uint32_t MAGIC = 0x41494241;
+	uint32_t magic;
+
 	aiBase();
 	virtual ~aiBase();
+
+	bool IsValid() const { return magic == MAGIC; }
 
 	virtual void Init();
 	virtual void Update(double timeFrame);

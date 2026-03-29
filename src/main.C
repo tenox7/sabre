@@ -29,7 +29,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include <float.h>
 #include <time.h>
 #include <string.h>
@@ -49,6 +50,7 @@
 #include "game.h"
 #include "scnedit.h"
 #include "sbrkeys.h"
+#include "menu.h"
 
 #ifndef REV_DATE
 #define REV_DATE "01/99"
@@ -88,6 +90,7 @@ static int mr = 0;    // use mouse as rudder
 static int demo = 0;
 static int edit_scene = 0;
 static int want_sound = 0;
+static int use_menu = 1;
 int mouse_avail = 1;
 
 static void (*oldsigfpe)(int);
@@ -145,7 +148,7 @@ int main(int argc, char *argv[])
       else if (!strcmp(argv[i],"-mr"))  // mouse for rudder
 	mr = 1;
       else if (!strcmp(argv[i],"-flt"))
-	flight_file = argv[++i];
+	{ flight_file = argv[++i]; use_menu = 0; }
       else if (!strcmp(argv[i],"-grnd"))
 	ground_file = argv[++i];
       else if (!strcmp(argv[i],"-wld"))
@@ -236,7 +239,31 @@ int main(int argc, char *argv[])
       printf("chaining SIGSEGV handler\n");
       oldsigsegv = signal(SIGSEGV,mysigsegv);
       */
-      if (edit_scene)
+      if (use_menu)
+	{
+	  setupMenu();
+	  sound_init(0L);
+	  read_sound_file(sound_file);
+	  flight_file = "furball.flt";
+	  demo = 1;
+	  do_random = 1;
+	  for (;;)
+	    {
+	      doGame();
+	      if (!menuPending())
+		break;
+	      MenuResult mres = getMenuResult();
+	      if (mres.quit)
+		break;
+	      flight_file = mres.flight_file;
+	      world_file = mres.world_file;
+	      ground_file = mres.ground_file;
+	      demo = mres.demo;
+	      do_random = mres.do_random;
+	      no_crash = mres.no_crash;
+	    }
+	}
+      else if (edit_scene)
 	doSceneEdit();
       else
 	doGame();
@@ -258,6 +285,10 @@ int main(int argc, char *argv[])
  *******************************************/
 int messageLoop()
 {
+  if (use_menu && menuPending())
+    return 0;
+  if (use_menu && menuKeyPending())
+    FlightInput::SetKeybdin(getMenuKey());
   int key;
   int sabreVKey;
   key = kbhit.getch();
@@ -349,8 +380,13 @@ void doGame()
 		      demo,
 		      messageLoop);
   theGame.doGame();
-  delete map_man;
-  delete g_font;
+  if (!use_menu || !menuPending())
+    {
+      delete map_man;
+      map_man = NULL;
+      delete g_font;
+      g_font = NULL;
+    }
   theGame.printResults(std::cout);
 }
 

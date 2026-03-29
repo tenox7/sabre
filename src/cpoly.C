@@ -27,7 +27,8 @@
  * of the static variety                         *
  *************************************************/
 #include <stdio.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <iostream>
 #include <string.h>

@@ -307,6 +307,8 @@ public:
 		return navInfo;
 	}
 
+	static bool IsLivePilot(void *p);
+
 	/* static functions */
 	static sObjectArray aiPilots;
 	static uint32_t	nextIdx;

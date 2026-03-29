@@ -30,7 +30,8 @@
 #include <fstream>
 #include <math.h>
 #include <limits.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include "defs.h"
 #include "pc_keys.h"
 #include "vga_13.h"

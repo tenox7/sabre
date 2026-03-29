@@ -33,6 +33,7 @@
 
 aiBase::aiBase()
 {
+	magic = MAGIC;
 	timeFrame = elapsedTime = 0.0;
 	logFlag = 0;
 	logFile = NULL;
@@ -47,6 +48,7 @@ aiBase::aiBase()
 
 aiBase::~aiBase()
 {
+	magic = 0;
 	CloseLog();
 }
 

@@ -89,6 +89,7 @@ public:
   }
 
   int Remove(int idx);
+  void SetNull(int idx);
 };
 
 #endif

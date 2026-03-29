@@ -69,11 +69,12 @@ orgenv = Environment(
         CC="clang" + compilerpostfix if clang else "cc" + compilerpostfix, CFLAGS=lto + opt + warn + debug_profile_and_coverage + ([] if not everything else Split('-ansi -pedantic -std=gnu11')), CXX="clang++" + compilerpostfix if clang else "cc" + compilerpostfix, CXXFLAGS=lto + opt + warn + debug_profile_and_coverage + ["-std=c++11"] + ([] if not everything else Split('-pedantic')), LIBS=["m"],
         LINK="clang++" + compilerpostfix if clang else "c++" + compilerpostfix,
         #CXXFLAGS="-nodefaultlibs -fno-exceptions -w",
-        CPPDEFINES = {"VERSION":"\\\"0.2.4b\\\"","REV_DATE":"\\\"11/21/99\\\"","JSTICK_INSTALLED":"1"},
+        CPPDEFINES = {"VERSION":"\\\"0.2.4b\\\"","REV_DATE":"\\\"11/21/99\\\""},
         CPPPATH=(["gdev"] if do_vga else []) + ["src"]
 )
 
 orgenv['ENV']['TERM'] = os.environ['TERM']
+orgenv['ENV']['PATH'] = os.environ.get('PATH', '/usr/bin:/bin:/usr/local/bin')
 
 orgenv.Append(LINKFLAGS=machine + link_lto)
 
@@ -93,7 +94,7 @@ env = orgenv.Clone()
 if do_vga: env.Append(CPPDEFINES = {"HAVE_LIBVGA":"1"})
 
 if do_sdl:
-        env.ParseConfig('PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig/ pkg-config --libs --cflags sdl2')
+        env.ParseConfig('pkg-config --libs --cflags sdl2 SDL2_mixer')
         env.Append(CPPDEFINES = {"HAVE_LIBSDL": "1"})
 
 if do_vga: env.ParseConfig('pkg-config --libs --cflags directfb')
@@ -161,7 +162,6 @@ src/simfile.C
 src/simfilex.C
 src/siminput.C
 src/simmath.C
-src/simsnd.C
 src/smath.C
 src/smnvrst.C
 src/sobject.C
@@ -201,7 +201,15 @@ src/kbdhit.C
 src/main.C
 src/input.C
 src/vga_13.C
+src/simsnd.C
 """)
+
+import platform
+if platform.system() == 'Darwin':
+        displ += ['src/menu_mac.mm']
+        env.Append(LINKFLAGS=['-framework', 'Cocoa'])
+else:
+        displ += ['src/menu.C']
 
 objects = [orgenv.Object(x) for x in files]
 displobjects = [env.Object(x) for x in displ]

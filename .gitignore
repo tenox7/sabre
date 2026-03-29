@@ -13,3 +13,7 @@ tools/fontedit
 *.gcda
 *.gcno
 gmon.out
+
+Sabre.app/
+Sabre.dmg
+*.o

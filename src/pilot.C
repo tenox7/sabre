@@ -34,7 +34,8 @@
 #include <string.h>
 #include <math.h>
 #include <limits.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include <stdarg.h>
 #include "defs.h"
 #include "sim.h"

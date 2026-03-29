@@ -194,7 +194,7 @@
     prototypes are normally found in <string.h> and <stdlib.h>.
  */
 #include <memory.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "inflate.h"
 
 #ifndef FPRINTF
