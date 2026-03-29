@@ -124,8 +124,9 @@ app: $(TARGET)
 	mkdir -p $(BUNDLE)/Contents/Frameworks
 	@# Copy binary
 	cp $(TARGET) $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin
-	@# Copy resources
+	@# Copy resources and icon
 	cp -R lib/* $(BUNDLE)/Contents/Resources/lib/
+	@[ -f Sabre.icns ] && cp Sabre.icns $(BUNDLE)/Contents/Resources/ || true
 	@# Bundle dylibs and fix paths
 	@echo "Bundling dynamic libraries..."
 	@for dylib in $$(otool -L $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin | \
@@ -175,6 +176,7 @@ app: $(TARGET)
 	  '  <key>CFBundleShortVersionString</key><string>$(VERSION)</string>' \
 	  '  <key>CFBundlePackageType</key><string>APPL</string>' \
 	  '  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>' \
+	  '  <key>CFBundleIconFile</key><string>Sabre</string>' \
 	  '  <key>NSHighResolutionCapable</key><true/>' \
 	  '</dict></plist>' > $(BUNDLE)/Contents/Info.plist
 	@# Verify
@@ -188,8 +190,12 @@ app: $(TARGET)
 
 dmg: app
 	@echo "=== Creating $(DMG) ==="
-	rm -f $(DMG)
-	hdiutil create -volname "$(APP_NAME)" -srcfolder $(BUNDLE) -ov -format UDZO $(DMG)
+	rm -rf /tmp/$(APP_NAME)-dmg $(DMG)
+	mkdir -p /tmp/$(APP_NAME)-dmg
+	cp -R $(BUNDLE) /tmp/$(APP_NAME)-dmg/
+	ln -s /Applications /tmp/$(APP_NAME)-dmg/Applications
+	hdiutil create -volname "$(APP_NAME)" -srcfolder /tmp/$(APP_NAME)-dmg -ov -format UDZO $(DMG)
+	rm -rf /tmp/$(APP_NAME)-dmg
 	@ls -lh $(DMG)
 	@echo "=== $(DMG) ready ==="
 endif

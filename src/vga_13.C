@@ -221,7 +221,7 @@ screen = SDL_CreateTexture(sdlRenderer,
               SDL_GetError());
       exit(1);   
       }
-SDL_SetWindowTitle(sdlWindow, "Sabre - SDL Version");
+SDL_SetWindowTitle(sdlWindow, "Sabre - macOS Version");
       
 // now setup all of the Sabre stuff to point to our new buffer ...
 	 
@@ -515,7 +515,7 @@ void mline(int x0, int y0, int x1, int y1, char color)
 #ifdef HAVE_LIBSDL
 int FilterEvents(void *, SDL_Event *event)
 {
-  if(event->type == SDL_KEYDOWN)
+  if(event->type == SDL_KEYDOWN || event->type == SDL_QUIT)
     return 1;
   return 0;
 }

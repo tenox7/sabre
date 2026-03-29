@@ -243,6 +243,10 @@ int KBHit::getch() {
 
 #ifdef HAVE_LIBSDL
   if (SDL_PollEvent(&event)) {
+    if (event.type == SDL_QUIT) {
+      kbdin = 27;
+      return 27;
+    }
     unsigned char c;
     c = static_cast<unsigned char>(event.key.keysym.sym);
     c = sdl_to_standard[c];
