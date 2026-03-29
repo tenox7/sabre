@@ -234,6 +234,8 @@ void GameSession::play()
 			}
 			if (gpause == 1)
 				draw_flight(&port);
+			if (messageHook && !messageHook())
+				break;
 			if (!port_key(port))
 				break;
 		}

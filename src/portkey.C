@@ -64,6 +64,14 @@ Vector lf,la;
 	if (FlightInput::kbdin == FI_EXIT_FLIGHT)
 		return 0;
 
+	if (FlightInput::kbdin == FI_PAUSE_TOGGLE)
+	{
+		gpause = !gpause;
+		FlightInput::kbdin_lock = 0;
+		FlightInput::kbdin = FI_NO_KEY;
+		return 1;
+	}
+
 	Vector v = Vector(port.look_at - port.look_from);
 	v.Normalize();
 	Vector v2 = v;
