@@ -85,7 +85,7 @@ endif
 ALL_O = $(CORE_CXX_O) $(CORE_C_O) $(SDL_CXX_O) $(MENU_O)
 TARGET = src/sabre
 
-.PHONY: all clean app dmg run
+.PHONY: all clean app dmg run universal
 
 all: $(TARGET)
 
@@ -113,58 +113,75 @@ run: $(TARGET)
 clean:
 	rm -f $(ALL_O) $(TARGET)
 	rm -rf $(BUNDLE) $(DMG)
+	rm -rf build-x86_64 build-arm64 build-sdl-inc
+
+# --- Universal (fat) binary via frameworks ---
+ifeq ($(UNAME_S),Darwin)
+UNI_SDLINC    = build-sdl-inc/SDL2
+UNI_FWFLAGS   = -F/Library/Frameworks -F$(HOME)/Library/Frameworks \
+                -Ibuild-sdl-inc
+UNI_FRAMEWORKS = -F/Library/Frameworks -F$(HOME)/Library/Frameworks \
+                 -framework SDL2 -framework SDL2_mixer \
+                 $(FRAMEWORKS) -lobjc -lm -liconv -lstdc++
+UNI_CXXFLAGS  = -std=c++11 -Wall -O2 -fPIC -Isrc \
+                -DVERSION=\"$(VERSION)\" -DREV_DATE=\"$(REV_DATE)\"
+UNI_CFLAGS    = -Wall -O2 -fPIC -Isrc \
+                -DVERSION=\"$(VERSION)\" -DREV_DATE=\"$(REV_DATE)\"
+
+define build_arch
+	@echo "=== Building $(1) ==="
+	@mkdir -p build-$(1)/src build-$(1)/libzip
+	@for f in $(CORE_CXX); do \
+	  $(CXX) -arch $(1) $(UNI_CXXFLAGS) -c -o build-$(1)/$${f%.C}.o $$f; \
+	done
+	@for f in $(CORE_C); do \
+	  $(CC) -arch $(1) $(UNI_CFLAGS) -c -o build-$(1)/$${f%.c}.o $$f; \
+	done
+	@for f in $(SDL_CXX); do \
+	  $(CXX) -arch $(1) $(UNI_CXXFLAGS) $(SDL_DEFINES) $(UNI_FWFLAGS) -c -o build-$(1)/$${f%.C}.o $$f; \
+	done
+	@$(CXX) -arch $(1) $(UNI_CXXFLAGS) $(SDL_DEFINES) $(UNI_FWFLAGS) -c -o build-$(1)/src/menu_mac.o src/menu_mac.mm
+	@$(CXX) -arch $(1) -o build-$(1)/sabre \
+	  $$(find build-$(1) -name '*.o') $(UNI_FRAMEWORKS)
+endef
+
+universal:
+	@mkdir -p $(UNI_SDLINC)
+	@ln -sf /Library/Frameworks/SDL2.framework/Headers/* $(UNI_SDLINC)/
+	@ln -sf $(HOME)/Library/Frameworks/SDL2_mixer.framework/Headers/* $(UNI_SDLINC)/
+	$(call build_arch,x86_64)
+	$(call build_arch,arm64)
+	@echo "=== Creating universal binary ==="
+	lipo -create build-x86_64/sabre build-arm64/sabre -output src/sabre
+	lipo -info src/sabre
+	@echo "=== Universal binary ready ==="
+endif
 
 # --- macOS .app bundle ---
 ifeq ($(UNAME_S),Darwin)
-app: $(TARGET)
+SDL2_FW     = /Library/Frameworks/SDL2.framework
+SDL2MIX_FW  = $(HOME)/Library/Frameworks/SDL2_mixer.framework
+
+app: universal
 	@echo "=== Creating $(BUNDLE) ==="
 	rm -rf $(BUNDLE)
 	mkdir -p $(BUNDLE)/Contents/MacOS
 	mkdir -p $(BUNDLE)/Contents/Resources/lib
 	mkdir -p $(BUNDLE)/Contents/Frameworks
-	@# Copy binary
 	cp $(TARGET) $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin
-	@# Copy resources and icon
 	cp -R lib/* $(BUNDLE)/Contents/Resources/lib/
 	@[ -f Sabre.icns ] && cp Sabre.icns $(BUNDLE)/Contents/Resources/ || true
-	@# Bundle dylibs and fix paths
-	@echo "Bundling dynamic libraries..."
-	@for dylib in $$(otool -L $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin | \
-	    grep -oE '/opt/homebrew[^ ]+' | sort -u); do \
-	  name=$$(basename "$$dylib"); \
-	  cp "$$dylib" $(BUNDLE)/Contents/Frameworks/"$$name"; \
-	  install_name_tool -change "$$dylib" "@executable_path/../Frameworks/$$name" \
-	    $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin; \
-	done
-	@# Fix dylib cross-references
-	@for fw in $(BUNDLE)/Contents/Frameworks/*.dylib; do \
-	  for dep in $$(otool -L "$$fw" | grep -oE '/opt/homebrew[^ ]+'); do \
-	    depname=$$(basename "$$dep"); \
-	    [ -f "$(BUNDLE)/Contents/Frameworks/$$depname" ] || \
-	      cp "$$dep" "$(BUNDLE)/Contents/Frameworks/$$depname" 2>/dev/null; \
-	    install_name_tool -change "$$dep" "@executable_path/../Frameworks/$$depname" "$$fw" 2>/dev/null; \
-	  done; \
-	done
-	@# Second pass for transitive deps
-	@for fw in $(BUNDLE)/Contents/Frameworks/*.dylib; do \
-	  for dep in $$(otool -L "$$fw" | grep -oE '/opt/homebrew[^ ]+'); do \
-	    depname=$$(basename "$$dep"); \
-	    [ -f "$(BUNDLE)/Contents/Frameworks/$$depname" ] || \
-	      cp "$$dep" "$(BUNDLE)/Contents/Frameworks/$$depname" 2>/dev/null; \
-	    install_name_tool -change "$$dep" "@executable_path/../Frameworks/$$depname" "$$fw" 2>/dev/null; \
-	  done; \
-	done
-	@# Re-sign everything after install_name_tool changes
+	@echo "Bundling frameworks..."
+	cp -R $(SDL2_FW) $(BUNDLE)/Contents/Frameworks/
+	cp -R $(SDL2MIX_FW) $(BUNDLE)/Contents/Frameworks/
+	install_name_tool -add_rpath @executable_path/../Frameworks $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin
 	@echo "Re-signing bundle..."
+	@codesign --force --sign - $(BUNDLE)/Contents/Frameworks/SDL2.framework
+	@codesign --force --sign - $(BUNDLE)/Contents/Frameworks/SDL2_mixer.framework
 	@codesign --force --sign - $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin
-	@for fw in $(BUNDLE)/Contents/Frameworks/*.dylib; do \
-	  codesign --force --sign - "$$fw"; \
-	done
-	@# Create launcher that sets working dir
 	@printf '#!/bin/bash\nDIR="$$(dirname "$$0")"\ncd "$$DIR/../Resources"\nexec "$$DIR/$(APP_NAME)-bin" "$$@"\n' \
 	  > $(BUNDLE)/Contents/MacOS/$(APP_NAME)
 	chmod +x $(BUNDLE)/Contents/MacOS/$(APP_NAME)
-	@# Info.plist
 	@printf '%s\n' \
 	  '<?xml version="1.0" encoding="UTF-8"?>' \
 	  '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
@@ -179,13 +196,12 @@ app: $(TARGET)
 	  '  <key>CFBundleIconFile</key><string>Sabre</string>' \
 	  '  <key>NSHighResolutionCapable</key><true/>' \
 	  '</dict></plist>' > $(BUNDLE)/Contents/Info.plist
-	@# Verify
 	@echo "--- External dependencies check ---"
-	@otool -L $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin | grep -v /System | grep -v /usr/lib | grep -v @executable
+	@otool -L $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin | grep -v /System | grep -v /usr/lib | grep -v @rpath | grep -v @executable
 	@echo "--- Bundle contents ---"
-	@echo "Frameworks: $$(ls $(BUNDLE)/Contents/Frameworks/ | wc -l) dylibs"
-	@echo "Resources:  $$(ls $(BUNDLE)/Contents/Resources/lib/ | wc -l) files"
+	@du -sh $(BUNDLE)/Contents/Frameworks/
 	@du -sh $(BUNDLE)
+	@lipo -info $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin
 	@echo "=== $(BUNDLE) ready ==="
 
 dmg: app
