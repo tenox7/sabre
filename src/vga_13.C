@@ -38,11 +38,18 @@
 #include "vga_13.h"
 #include "ddaline.h"
 #ifdef HAVE_LIBSDL
+#ifdef HAVE_SDL2
 #include <SDL2/SDL.h>
 int FilterEvents(void *userdata, SDL_Event *event);
-static SDL_Texture *screen; 
+static SDL_Texture *screen;
 static Uint32* myBuf;
 static SDL_Renderer *sdlRenderer;
+#else
+#include "SDL.h"
+int FilterEvents(const SDL_Event *event);
+static SDL_Surface *sdlScreen;
+static Uint32 *myBuf;
+#endif
 #else
 #include "gdev-svgalib.h"
 #include <directfb.h>
@@ -59,7 +66,9 @@ static IDirectFBSurface *primary = NULL;
       }                                                        \
   }
 #endif
-static SDL_Color *colors;
+
+typedef struct { Uint8 r, g, b, a; } SabreColor;
+static SabreColor *colors;
 
 /*
   Define our own "vgamodes"
@@ -159,7 +168,11 @@ void init_vga_13(void)
              SDL_GetError());     
      exit(0);        
      } 
-  SDL_SetEventFilter(FilterEvents, nullptr);
+#ifdef HAVE_SDL2
+  SDL_SetEventFilter(FilterEvents, NULL);
+#else
+  SDL_SetEventFilter(FilterEvents);
+#endif
   SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
 #else
 #endif
@@ -207,7 +220,7 @@ void init_vga_13(void)
 
 // then  setup the display ...
 
-//   SDL_Surface *screen; is define above ...
+#ifdef HAVE_SDL2
 SDL_Window *sdlWindow;
 SDL_CreateWindowAndRenderer(dimx, dimy, 0, &sdlWindow, &sdlRenderer);
 myBuf=new Uint32[dimx*dimy*4];
@@ -215,13 +228,24 @@ screen = SDL_CreateTexture(sdlRenderer,
                                SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STREAMING,
                                dimx, dimy);
-   if (screen == NULL) 
-      { 
+   if (screen == NULL)
+      {
       fprintf(stderr, "Couldn't set SDL video mode: %s\n",
               SDL_GetError());
-      exit(1);   
+      exit(1);
       }
 SDL_SetWindowTitle(sdlWindow, "Sabre - macOS Version");
+#else
+myBuf=new Uint32[dimx*dimy*4];
+sdlScreen = SDL_SetVideoMode(dimx, dimy, 32, SDL_SWSURFACE);
+   if (sdlScreen == NULL)
+      {
+      fprintf(stderr, "Couldn't set SDL video mode: %s\n",
+              SDL_GetError());
+      exit(1);
+      }
+SDL_WM_SetCaption("Sabre - PowerPC Version", "Sabre");
+#endif
       
 // now setup all of the Sabre stuff to point to our new buffer ...
 	 
@@ -306,15 +330,20 @@ void blit_buff()
      for (int i=0; i<SCREEN_WIDTH; i++) {
        unsigned char idx = screen_ptr[j*SCREEN_WIDTH + i];
        int r = colors[idx].r, g = colors[idx].g, b = colors[idx].b;
-       //printf("%d %d %d %d\n", idx, r, g, b);
        myBuf[j*SCREEN_WIDTH + i] = static_cast<Uint32>(colors[idx].a << 24 | r << 16 | g << 8 | b << 0);
      }
    }
+#ifdef HAVE_SDL2
    SDL_UpdateTexture(screen, NULL, myBuf, SCREEN_WIDTH * 4);
    SDL_RenderClear(sdlRenderer);
    SDL_RenderCopy(sdlRenderer, screen, NULL, NULL);
    SDL_RenderPresent(sdlRenderer);
-   //SDL_UpdateRect(screen, 0, 0, 0, 0);
+#else
+   SDL_LockSurface(sdlScreen);
+   memcpy(sdlScreen->pixels, myBuf, SCREEN_WIDTH * SCREEN_HEIGHT * 4);
+   SDL_UnlockSurface(sdlScreen);
+   SDL_Flip(sdlScreen);
+#endif
 #else
 
    u8* data;
@@ -342,9 +371,14 @@ void clear_scr(int color)
 void clear_scr(int color, int)
 {
 assert(color < 256);
+#ifdef HAVE_SDL2
 SDL_SetRenderDrawColor(sdlRenderer, colors[color].r, colors[color].b, colors[color].g, colors[color].a);
 SDL_RenderClear(sdlRenderer);
 SDL_RenderPresent(sdlRenderer);
+#else
+memset(buffer_ptr, color, SCREEN_WIDTH * SCREEN_HEIGHT);
+blit_buff();
+#endif
 }
 #else
 void clear_scr(int color, int)
@@ -397,7 +431,7 @@ void v_line(int x, int y, int len, int color)
 void set_rgb_value(int color, char red, char green, char blue)
 {
 assert(color < 256);
-if (!colors) colors = new SDL_Color[256];
+if (!colors) colors = new SabreColor[256];
 colors[color].r = uint8_t(red << 2);
 colors[color].g = uint8_t(green << 2);
 colors[color].b = uint8_t(blue << 2);
@@ -513,7 +547,11 @@ void mline(int x0, int y0, int x1, int y1, char color)
 }
 
 #ifdef HAVE_LIBSDL
+#ifdef HAVE_SDL2
 int FilterEvents(void *, SDL_Event *event)
+#else
+int FilterEvents(const SDL_Event *event)
+#endif
 {
   if(event->type == SDL_KEYDOWN || event->type == SDL_QUIT)
     return 1;

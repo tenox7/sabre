@@ -27,7 +27,11 @@
 #ifndef STARGET_H
 #define STARGET_H
 
+#ifdef __ppc__
+#include <stdint.h>
+#else
 #include <cstdint>
+#endif
 #include "sobject.h"
 #include "smath.h"
 #include "stact.h"

@@ -75,9 +75,8 @@ inline void ZMIN(REAL_TYPE x, REAL_TYPE y, REAL_TYPE z,
  * C_3DObject_Base Methods                                     *
  ***************************************************************/
 
-C_3DObject_Base::~C_3DObject_Base() = default;
+C_3DObject_Base::~C_3DObject_Base() {}
 
-C_3DObject_Base::C_3DObject_Base(const C_3DObject_Base&) = default;
 
 void C_3DObject_Base::calc_bounding_sphere()
 {

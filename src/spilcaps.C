@@ -30,7 +30,7 @@
 
 sObjectArray sPilotCaps::sPilotCapsArray(sMAXPILOTCAPS,1);
 
-sPilotCaps::~sPilotCaps() = default;
+sPilotCaps::~sPilotCaps() {}
 
 void sPilotCaps::AddsPilotCaps(sPilotCaps &pilotCaps)
 {

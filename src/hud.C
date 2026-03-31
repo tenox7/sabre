@@ -65,10 +65,17 @@
 #include "aimath.h"
 
 extern float raw_time;
+#ifdef __ppc__
+#define NOSE_CHAR 128
+#define YOKE_CHAR 136
+#define RUDDER_CENTER_CHAR 139
+#define RUDDER_CHAR 140
+#else
 constexpr auto NOSE_CHAR = 128;
 constexpr auto YOKE_CHAR = 136;
 constexpr auto RUDDER_CENTER_CHAR = 139;
 constexpr auto RUDDER_CHAR = 140;
+#endif
 
 void Hud::read_file(const char *path)
 {

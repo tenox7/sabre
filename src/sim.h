@@ -20,7 +20,6 @@
 #ifndef SIM_H
 #define SIM_H
 #include <stdlib.h>
-#include <random>
 
 extern float world_scale;
 extern float time_factor;
@@ -31,14 +30,22 @@ extern float player_hit_scaler;
 
 #include "rtkey.h"
 
+#ifdef __ppc__
+template <typename T>
+inline T RANDOM(T x)
+{
+  return static_cast<T>(rand() % x);
+}
+#else
+#include <random>
 static std::random_device generator;
-
 template <typename T>
 inline T RANDOM(T x)
 {
   std::uniform_int_distribution<T> distribution(0,x-1);
   return distribution(generator);
 }
+#endif
 
 inline long coreleft()
 {

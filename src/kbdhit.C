@@ -35,7 +35,11 @@
 /* 12/98 David Vandewalle: SDL port */
 
 #ifdef HAVE_LIBSDL
+#ifdef HAVE_SDL2
 #include <SDL2/SDL.h>
+#else
+#include "SDL.h"
+#endif
 #else
 #include <directfb.h>
 #endif

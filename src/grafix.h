@@ -142,11 +142,15 @@ inline void cliprect2rect(const Rect &cr, Rect &r)
     r.botRight.y = cr.botRight.y;
 }
 
+#ifdef __ppc__
+inline unsigned int myabs(int x) { return x < 0 ? (unsigned int)(-x) : (unsigned int)(x); }
+#else
 template<typename T>
 typename std::make_unsigned<T>::type myabs(T x)
 {
     return x < 0 ? -static_cast<decltype(myabs(x))>(x) : static_cast<decltype(myabs(x))>(x);
 }
+#endif
 
 inline unsigned int RWIDTH(const Rect &r)
 {

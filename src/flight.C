@@ -83,7 +83,7 @@ REAL_TYPE Flight::rot_acc_max = 24.0;
 REAL_TYPE Flight::rot_rate_max = SABRE_PI34;
 REAL_TYPE Flight::rot_max = SABRE_PI2 * C(0.4);
 
-Flight::~Flight() = default;
+Flight::~Flight() {}
 
 void Flight::read(std::istream &is)
 {

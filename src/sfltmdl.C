@@ -88,4 +88,4 @@ void sFlightModel::DoControlCallback()
     (*updateCallback)(CONTROL_UPDATE,callbackData);
 }
 
-sFlightModel::~sFlightModel() = default;
+sFlightModel::~sFlightModel() {}

@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_SDL2
 #include <SDL2/SDL.h>
+#else
+#include "SDL.h"
+#endif
 #include "vga_13.h"
 #include "font8x8.h"
 #include "menu.h"
@@ -235,7 +239,8 @@ int getMenuKey()
 
 static MenuResult showMenu()
 {
-  MenuResult result = {};
+  MenuResult result;
+  memset(&result, 0, sizeof(result));
   result.flight_file = "fly.flt";
   result.world_file = "a.wld";
   result.ground_file = NULL;

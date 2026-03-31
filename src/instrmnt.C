@@ -400,7 +400,7 @@ void setup_instruments(const char *path, Instrument_Panel &ip)
   is.close();
   ip.init();
 }
-Indicator::~Indicator() = default;
+Indicator::~Indicator() {}
 void Scaled_Indicator::init() {}
 void Elevator_I::underpaint(Flight&) {}
 void Dial_Indicator::underpaint(Flight&) {}

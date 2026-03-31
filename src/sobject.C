@@ -1,3 +1,3 @@
 #include "sobject.h"
 
-sObject::~sObject() = default;
+sObject::~sObject() {}

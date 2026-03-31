@@ -29,7 +29,7 @@
 #include <math.h>
 #include "starget.h"
 
-sSurfaceTarget::~sSurfaceTarget() = default;
+sSurfaceTarget::~sSurfaceTarget() {}
 
 sTargetGeometry::sTargetGeometry()
 {
@@ -54,9 +54,9 @@ sTargetInfo::sTargetInfo()
   weaponsEffect = 4.0;
 }
 
-sTargetFlags::~sTargetFlags() = default;
-sTarget::~sTarget() = default;
-sTargetInfo::~sTargetInfo() = default;
+sTargetFlags::~sTargetFlags() {}
+sTarget::~sTarget() {}
+sTargetInfo::~sTargetInfo() {}
 
 /*********************************************
  * Target flags

@@ -29,7 +29,11 @@
 
 #ifdef __cplusplus
 
+#ifdef __ppc__
+#include <stdint.h>
+#else
 #include <cstdint>
+#endif
 #include "smath.h"
 #include "dhlist.h"
 

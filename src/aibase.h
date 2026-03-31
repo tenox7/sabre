@@ -30,7 +30,11 @@
 #define AIBASE_H
 
 #ifdef __cplusplus
+#ifdef __ppc__
+#include <stdint.h>
+#else
 #include <cstdint>
+#endif
 #include "sobject.h"
 #include "sarray.h"
 #include "smnvrst.h"

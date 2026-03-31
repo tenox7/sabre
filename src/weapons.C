@@ -1080,9 +1080,9 @@ void Weapon_Instance_List::draw(Port_3D *port)
     weapons[i].draw(port);
 }
 
-Weapon_Specs::~Weapon_Specs() = default;
-Rocket_Specs::~Rocket_Specs() = default;
-Cannon_Specs::~Cannon_Specs() = default;
-Missile_Specs::~Missile_Specs() = default;
-Gun_Specs::~Gun_Specs() = default;
-FuelTank_Specs::~FuelTank_Specs() = default;
+Weapon_Specs::~Weapon_Specs() {}
+Rocket_Specs::~Rocket_Specs() {}
+Cannon_Specs::~Cannon_Specs() {}
+Missile_Specs::~Missile_Specs() {}
+Gun_Specs::~Gun_Specs() {}
+FuelTank_Specs::~FuelTank_Specs() {}

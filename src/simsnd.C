@@ -31,8 +31,13 @@
 #include "simsnd.h"
 
 #ifdef HAVE_LIBSDL
+#ifdef HAVE_SDL2
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
+#else
+#include "SDL.h"
+#include "SDL_mixer.h"
+#endif
 
 #define MAX_SOUND_IDS 256
 #define MAX_SOUND_ID_LEN 32

@@ -43,7 +43,7 @@ sAttitude attitude;
 	sSlewer::SetPositionAndAttitude(position,attitude);
 }
 
-sRunway::~sRunway() = default;
+sRunway::~sRunway() {}
 
 void sRunway::GetLandingTurnPoint(sPoint &turnPoint, sREAL approachDistance, sREAL turnRadius,
 									int clockWise)

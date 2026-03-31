@@ -54,4 +54,4 @@ int calc_radial_damage(const R_3DPoint &r1, float radius, int damage,
   return (result);
 }
 
-Target::~Target() = default;
+Target::~Target() {}

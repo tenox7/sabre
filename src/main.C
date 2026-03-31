@@ -52,6 +52,10 @@
 #include "sbrkeys.h"
 #include "menu.h"
 
+#if defined(HAVE_LIBSDL) && !defined(HAVE_SDL2)
+#include "SDL.h"
+#endif
+
 #ifndef REV_DATE
 #define REV_DATE "01/99"
 #endif

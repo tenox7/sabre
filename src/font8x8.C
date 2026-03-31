@@ -31,7 +31,7 @@
 
 extern const char *build_libpath(const char *);
 
-SimFont::~SimFont() = default;
+SimFont::~SimFont() {}
 
 void SimFont::put_string(char *str, int x, int y, int color)
 {

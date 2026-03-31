@@ -51,7 +51,7 @@ void clear_airfield_info(sairfield_info *airfield_info)
 	airfield_info->x = airfield_info->y = airfield_info->z = 0.0;
 }
 
-sAirfield::~sAirfield() = default;
+sAirfield::~sAirfield() {}
 
 sAirfield::sAirfield(const sairfield_info &airf_info)
 							:runways(sAIRFIELD_MAX_RUNWAYS,1)

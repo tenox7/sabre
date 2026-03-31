@@ -38,15 +38,19 @@
 #include "vga_13.h"
 #include "input.h"
 #ifdef HAVE_LIBSDL
+#ifdef HAVE_SDL2
 #include <SDL2/SDL.h>
+#else
+#include "SDL.h"
+#endif
 #else
 #include <directfb.h>
 #include "../gdev/gdev.h"
 #endif
 
-InputDevice_2D::~InputDevice_2D() = default;
-InputDevice::~InputDevice() = default;
-Joystick::~Joystick() = default;
+InputDevice_2D::~InputDevice_2D() {}
+InputDevice::~InputDevice() {}
+Joystick::~Joystick() {}
 
 extern int adjusted_mouse_x, adjusted_mouse_y, adjusted_buttons;
 

@@ -440,7 +440,7 @@ void aiPilot::DoRQEngage(sManeuverState &mv)
 	  mv.state = 4;
 	}
 
-    [[clang::fallthrough]];
+    
     case 1:
       if (flightModel->GetAirSpeedFPS() <= flightModel->GetStallSpeedFPS() * 1.1)
 	{
@@ -465,7 +465,7 @@ void aiPilot::DoRQEngage(sManeuverState &mv)
 		  mv.state = 3;
 		  break;
 		}
-	    [[clang::fallthrough]];
+	    
 	    case 2:
 	      {
 		unsigned int turn_bits;
