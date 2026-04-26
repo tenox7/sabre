@@ -17,3 +17,5 @@ gmon.out
 Sabre.app/
 Sabre.dmg
 *.o
+.env
+.DS_Store

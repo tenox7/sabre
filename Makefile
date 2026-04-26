@@ -1,6 +1,8 @@
 # Sabre Fighter Plane Simulator - Makefile
 # Builds for macOS (.app bundle + .dmg) and Linux
 
+-include .env
+
 APP_NAME    = Sabre
 VERSION     = 0.2.4b
 REV_DATE    = 11/21/99
@@ -10,9 +12,9 @@ DMG         = $(APP_NAME).dmg
 CXX         = c++
 CC          = cc
 
-CXXFLAGS    = -std=c++11 -Wall -O2 -fPIC -Isrc \
+CXXFLAGS    = -std=c++11 -Wall -Wno-deprecated-declarations -O2 -fPIC -Isrc \
               -DVERSION=\"$(VERSION)\" -DREV_DATE=\"$(REV_DATE)\"
-CFLAGS      = -Wall -O2 -fPIC -Isrc \
+CFLAGS      = -Wall -Wno-deprecated-declarations -O2 -fPIC -Isrc \
               -DVERSION=\"$(VERSION)\" -DREV_DATE=\"$(REV_DATE)\"
 
 UNAME_S := $(shell uname -s)
@@ -85,7 +87,7 @@ endif
 ALL_O = $(CORE_CXX_O) $(CORE_C_O) $(SDL_CXX_O) $(MENU_O)
 TARGET = src/sabre
 
-.PHONY: all clean app dmg run universal
+.PHONY: all clean app dmg run universal release
 
 all: $(TARGET)
 
@@ -123,9 +125,9 @@ UNI_FWFLAGS   = -F/Library/Frameworks -F$(HOME)/Library/Frameworks \
 UNI_FRAMEWORKS = -F/Library/Frameworks -F$(HOME)/Library/Frameworks \
                  -framework SDL2 -framework SDL2_mixer \
                  $(FRAMEWORKS) -lobjc -lm -liconv -lstdc++
-UNI_CXXFLAGS  = -std=c++11 -Wall -O2 -fPIC -Isrc \
+UNI_CXXFLAGS  = -std=c++11 -Wall -Wno-deprecated-declarations -O2 -fPIC -Isrc \
                 -DVERSION=\"$(VERSION)\" -DREV_DATE=\"$(REV_DATE)\"
-UNI_CFLAGS    = -Wall -O2 -fPIC -Isrc \
+UNI_CFLAGS    = -Wall -Wno-deprecated-declarations -O2 -fPIC -Isrc \
                 -DVERSION=\"$(VERSION)\" -DREV_DATE=\"$(REV_DATE)\"
 
 define build_arch
@@ -204,14 +206,29 @@ app: universal
 	@lipo -info $(BUNDLE)/Contents/MacOS/$(APP_NAME)-bin
 	@echo "=== $(BUNDLE) ready ==="
 
-dmg: app
-	@echo "=== Creating $(DMG) ==="
-	rm -rf /tmp/$(APP_NAME)-dmg $(DMG)
+define build_dmg
+	rm -rf /tmp/$(APP_NAME)-dmg $(1)
 	mkdir -p /tmp/$(APP_NAME)-dmg
 	cp -R $(BUNDLE) /tmp/$(APP_NAME)-dmg/
 	ln -s /Applications /tmp/$(APP_NAME)-dmg/Applications
-	hdiutil create -volname "$(APP_NAME)" -srcfolder /tmp/$(APP_NAME)-dmg -ov -format UDZO $(DMG)
+	hdiutil create -volname "$(APP_NAME)" -srcfolder /tmp/$(APP_NAME)-dmg -ov -format UDZO $(1)
 	rm -rf /tmp/$(APP_NAME)-dmg
+endef
+
+dmg: app
+	@echo "=== Creating $(DMG) ==="
+	$(call build_dmg,$(DMG))
 	@ls -lh $(DMG)
 	@echo "=== $(DMG) ready ==="
+
+release: app
+	@test -n "$(DEV_ID)" || { echo "DEV_ID not set — copy .env.example to .env and fill in"; exit 1; }
+	@test -n "$(NOTARY_PROFILE)" || { echo "NOTARY_PROFILE not set — copy .env.example to .env and fill in"; exit 1; }
+	codesign --force --deep --options runtime --timestamp --sign "$(DEV_ID)" $(BUNDLE)
+	codesign --verify --strict --verbose=2 $(BUNDLE)
+	$(call build_dmg,$(DMG))
+	codesign --force --timestamp --sign "$(DEV_ID)" $(DMG)
+	xcrun notarytool submit $(DMG) --keychain-profile "$(NOTARY_PROFILE)" --wait
+	xcrun stapler staple $(DMG)
+	@echo "Signed + notarized: $(DMG)"
 endif
