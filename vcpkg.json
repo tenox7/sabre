@@ -1,0 +1,11 @@
+{
+  "name": "sabre",
+  "version-string": "0.2.4b",
+  "dependencies": [
+    "sdl2",
+    {
+      "name": "sdl2-mixer",
+      "default-features": false
+    }
+  ]
+}
